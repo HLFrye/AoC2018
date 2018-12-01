@@ -8,19 +8,14 @@ def freq_seq(filename):
 
 def main():
   freq = 0
-  seen_freqs = {
-    "0": 1
-  }
+  seen_freqs = set([0])
   for line in freq_seq("./input.txt"):
-    if line[0] == '+':
-      freq = freq + int(line[1::])
-    else:
-      freq = freq - int(line[1::])
-    freq_str = str(freq)
-    if freq_str in seen_freqs:
+    freq = freq + int(line)
+
+    if freq in seen_freqs:
       print("The target frequency is: {}".format(freq))
       return
-    seen_freqs[freq_str] = 1
+    seen_freqs.add(freq)
 
 if __name__ == "__main__":
   main()
