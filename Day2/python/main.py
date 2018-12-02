@@ -1,31 +1,28 @@
-def has_repeat(repeat_count, line):
-  components = {}
-  for char in line:
-    if char in components:
-      components[char] = components[char] + 1
-    else:
-      components[char] = 1
-  for key,value in components.items():
-    if value == repeat_count:
-      return True
-  return False
+def differences(id1, id2):
+  diff_count = 0
+  for idx, val in enumerate(id1.strip()):
+    if id1[idx] != id2[idx]:
+      diff_count = diff_count + 1
+  return diff_count
 
-def has_two_repeat(line):
-  return has_repeat(2, line)
+def find_correct_box(lines):
+  for id1 in lines:
+    for id2 in lines:
+      if differences(id1, id2) == 1:
+        return id1, id2  
 
-def has_three_repeat(line):
-  return has_repeat(3, line)
+def find_same_letters(id1, id2):
+  output = ""
+  for idx, val in enumerate(id1.strip()):
+    if id1[idx] == id2[idx]:
+      output = output + id1[idx]
+  return output
 
 def main():
-  two_count = 0
-  three_count = 0
   with open("./input.txt") as input:
-    for line in input.readlines():
-      if has_two_repeat(line):
-        two_count = two_count + 1
-      if has_three_repeat(line):
-        three_count = three_count + 1
-  print("Checksum calculated: {}".format(two_count * three_count))
+    lines = input.readlines()
+    id1, id2 = find_correct_box(lines)
+    print(find_same_letters(id1, id2))
 
 
 if __name__ == '__main__':
