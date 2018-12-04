@@ -23,9 +23,13 @@ def render(grid, item):
       else:
         grid[y][x] = -1
 
-def is_overlap(space):
-  return space == -1
-
+def is_item_overlap(grid, item):
+  for y in range(item['y'], item['y'] + item['height']):
+    for x in range(item['x'], item['x'] + item['width']):
+      if grid[y][x] == -1:
+        return True
+  return False
+      
 def main():
   items = []
   max_x = 0
@@ -39,13 +43,9 @@ def main():
   for item in items:
     render(grid, item)
 
-  overlap_count = 0
-  for line in grid:
-    for space in line:
-      if is_overlap(space):
-        overlap_count = overlap_count + 1
-
-  print("Overlap is {}".format(overlap_count))
+  for item in items:
+    if not is_item_overlap(grid, item):
+      print("The non-overlapped item has ID: {}".format(item['id']))
 
 if __name__ == '__main__':
   main()
