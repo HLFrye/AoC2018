@@ -38,7 +38,7 @@ def most_asleep_minute(night_records):
     if nights > most_nights_asleep:
       most_asleep_minute = minute
       most_nights_asleep = nights
-  return most_asleep_minute
+  return most_asleep_minute, most_nights_asleep
 
 def lookahead(iterable):
   """Pass through all values from the given iterable, augmented by the
@@ -73,29 +73,27 @@ def main():
       curr_record = NightRecord(entry)
     else:
       curr_record.add_event(entry)
-
     if not more:
       records.append(curr_record)
 
-  guard_sleeps = {}
+  guard_records = {}
   for record in records:
-    if record.id in guard_sleeps:
-      guard_sleeps[record.id] = guard_sleeps[record.id] + record.sleepy_time
+    if record.id in guard_records:
+      guard_records[record.id].append(record)
     else:
-      guard_sleeps[record.id] = record.sleepy_time
+      guard_records[record.id] = [record]
+  
+  sleepy_nights = -1
+  sleepy_minute = -1
+  sleepy_guard = -1
+  for guard_id, records in guard_records.items():
+    minute, nights = most_asleep_minute(records)
+    if nights > sleepy_nights:
+      sleepy_nights = nights
+      sleepy_minute = minute
+      sleepy_guard = guard_id
 
-  sleepiest_id = -1
-  sleepiest_time = -1
-  for key, value in guard_sleeps.items():
-    if value > sleepiest_time:
-      sleepiest_time = value
-      sleepiest_id = key
-      
-
-  sleepiest_guard_records = filter(lambda x: x.id == sleepiest_id, records)
-  sleepiest_minute = most_asleep_minute(sleepiest_guard_records)
-
-  print("The code is: {}".format(sleepiest_id * sleepiest_minute))
+  print("The code is {}".format(sleepy_guard * sleepy_minute))
 
 if __name__ == '__main__':
   main()
