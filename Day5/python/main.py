@@ -29,19 +29,29 @@ def reduce_polymer(input):
     output = output + item
   return output, len(output)
 
+def fully_reduce_polymer(polymer):
+  last_len = len(polymer)
+  iterations = 0
+  while True:
+    polymer, new_len = reduce_polymer(polymer)
+    if last_len == new_len:
+      break
+    last_len = new_len
+    iterations = iterations + 1
+  return len(polymer)
 
 def main():
   with open("../input.txt") as input:
     polymer = input.readline()
-    last_len = len(polymer)
-    iterations = 0
-    while True:
-      polymer, new_len = reduce_polymer(polymer)
-      if last_len == new_len:
-        print("The answer after {} iterations is: {}".format(iterations, last_len))
-        break
-      last_len = new_len
-      iterations = iterations + 1
+    shortest = len(polymer)
+    for unit in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+      print("Checking {}".format(unit))
+      check_polymer = polymer.replace(unit, "").replace(chr(ord(unit) + 32), "")
+      check_len = fully_reduce_polymer(check_polymer)
+      if check_len < shortest:
+        shortest = check_len
+    print("The shortest was {}".format(shortest))
+
 
 if __name__ == '__main__':
   main()
