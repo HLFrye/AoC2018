@@ -1,5 +1,7 @@
 import re
 import sys
+from PIL import Image
+import numpy as np
 
 class Light:
   def __init__(self, defstring):
@@ -39,7 +41,7 @@ def render(lights):
   for light in lights:
     view_y = light.y - min_y
     view_x = light.x - min_x
-    grid[view_y][view_x] = 1
+    grid[view_y][view_x] = 255
 
   return grid
 
@@ -52,9 +54,9 @@ def main():
       light.move_next()
 
   grid = render(lights)
-  for row in grid:
-    print(row)
-
+  im = Image.fromarray(np.array(grid, np.int16))
+  im = im.convert('RGB')
+  im.save("./test.bmp", "BMP")
 
 if __name__ == "__main__":
   main()
