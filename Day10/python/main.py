@@ -2,6 +2,7 @@ import re
 import sys
 from PIL import Image
 import numpy as np
+import pytesseract
 
 class Light:
   def __init__(self, defstring):
@@ -37,26 +38,37 @@ def expand_bounds(amount, bounds):
 
 def render(lights):
   min_x, min_y, max_x, max_y = expand_bounds(3, get_bounds(lights))
-  grid = [[0] * (max_x - min_x) for i in range(max_y - min_y)]
+
+  if min_x < 0 and min_y < 0:
+    return None
+  # size = (max_y - min_y) * (max_x - min_x)
+  # print("({}): {}, {} to {}, {}".format(size, min_x, min_y, max_x, max_y))
+  grid = np.zeros(shape=(max_y - min_y, max_x - min_x), dtype=np.int16)
   for light in lights:
     view_y = light.y - min_y
     view_x = light.x - min_x
     grid[view_y][view_x] = 255
-
   return grid
 
 def main():
-  with open("../sample.txt") as input:
+  with open("../input.txt") as input:
     lights = [Light(x) for x in input.readlines()]
 
-  for s in range(0, 3):
+  for attempt in range(0, 20000):
+    # print("Processing attempt {}".format(attempt))
     for light in lights:
-      light.move_next()
+      light.move_next()  
+    grid = render(lights)
+    if grid is None:
+      continue
+    im = Image.fromarray(grid)
+    im = im.convert('RGB')
+    im.save("./attempt-{}.bmp".format(attempt), "BMP")
+    msg = pytesseract.image_to_string(im, config='-c tessedit_char_whitelist=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -psm 6', lang='eng')
+    if msg != "":
+      break
 
-  grid = render(lights)
-  im = Image.fromarray(np.array(grid, np.int16))
-  im = im.convert('RGB')
-  im.save("./test.bmp", "BMP")
+  print(msg)
 
 if __name__ == "__main__":
   main()
