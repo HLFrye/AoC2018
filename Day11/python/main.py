@@ -18,22 +18,26 @@ def populate_grid(input):
 
   return grid
 
-def get_subgrid_total(grid, x, y):
-  return grid[y][x] + grid[y][x+1] + grid[y][x+2] + grid[y+1][x] + grid[y+1][x+1] + grid[y+1][x+2] + grid[y+2][x] + grid[y+2][x+1] + grid[y+2][x+2]
+def get_subgrid_total(grid, x, y, size):
+  total = 0
+  for dx in range(0, size):
+    for dy in range(0, size):
+      total = total + grid[y+dy][x+dx] 
+  return total
 
-def calculate(input):
+def calculate(input, size):
   grid = populate_grid(input)
 
   max_fuel_level = 0
   max_point = None
-  for x in range(0, 297):
-    for y in range(0, 297):
-      level = get_subgrid_total(grid, x, y)
+  for x in range(0, 300 - size):
+    for y in range(0, 300 - size):
+      level = get_subgrid_total(grid, x, y, size)
       if level > max_fuel_level:
         max_fuel_level = level
         max_point = x,y
 
-  return max_point
+  return max_point, max_fuel_level
 
 def print_power_level(input, x, y):
   grid = populate_grid(input)
@@ -42,8 +46,16 @@ def print_power_level(input, x, y):
 def main():
   with open("../input.txt") as input:
     serial_no = int(input.readline())
-    
-  print("Result: {}".format(calculate(serial_no)))
+
+  best = (0, 0), 0
+  best_size = 0
+  for size in range(0, 301):
+    result = calculate(serial_no, size)
+    print("Attempt {}, Result {}".format(size, result))
+    if result[1] > best[1]:
+      best = result
+      best_size = size
+  print("Result: {}".format((best,size)))
 
 if __name__ == "__main__":
   main()
