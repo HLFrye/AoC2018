@@ -1,36 +1,35 @@
 from functools import reduce
 
-padding = 2
-
-def convert_input(x):
-  return 1 if x == "#" else 0
-
-def convert_output(x):
-  return '#' if x == 1 else '.'
+def convert_input(value):
+  return 1 if value == '#' else 0
 
 class GameState:
-  def __init__(self, initial_state, state_start):
-    self.min = state_start
-    self.max = len(initial_state) + state_start
-    self.data = initial_state
+  def __init__(self, pots_set):
+    self.active_pots = pots_set
 
-  def get_min(self):
-    return self.min - padding
+  def plant_in(self, pos):
+    return 1 if pos in self.active_pots else 0
 
-  def get_range(self):
-    return range(self.get_min(), self.max + padding)
+  def value_at(self, pos):
+    value = 0
+    for x in range(pos - 2, pos + 3):
+      value = (value << 1) | self.plant_in(x)
+    return value
 
-  def get(self, pos):
-    if pos < self.min or pos >= self.max:
-      return 0
-    return self.data[pos - self.min]
+  def update(self, rules):
+    check_set = set()
+    for pos in self.active_pots:
+      for possible_pos in range(pos - 2, pos + 3):
+        check_set.add(possible_pos)
 
-  def get_pos_value(self, pos):
-    return reduce(lambda x, y: (x << 1) | y, map(self.get, range(pos - 2, pos + 3)))
+    new_set = set()
+    for pos in check_set:
+      if rules.rules[self.value_at(pos)] == 1:
+        new_set.add(pos)
+    self.active_pots = new_set
 
-  def print(self):
-    state_graph = ''.join([convert_output(self.get(x)) for x in range(-15, 120)])
-    print("[{}]".format(state_graph))
+  def get_code(self):
+    return sum(self.active_pots)
 
 class Rules:
   def __init__(self, lines):
@@ -45,46 +44,32 @@ class Rules:
     for k,v in enumerate(self.rules):
       print("Rule {} = {}".format(k,v))
 
-
 def read_initial_state(input):
   initial_state = input[15:]
-  initial_state = initial_state.strip()
-  initial_state = map(convert_input, initial_state)
-  return list(initial_state)
-
-def update(state, rules):
-  curr = 0
-  updated = [0] * (len(state.data) + 4)
-  pt = 0
-  for point in state.data:
-    curr = (curr << 1 | point) & 31 
-    updated[pt] = rules.rules[curr]
-    pt = pt + 1
-
-  for i in range(0,4):
-    updated[pt+i] = rules.rules[(curr << (1 + i)) & 31]
-
-  start_at = state.get_min()
-  new_state = [rules.rules[state.get_pos_value(x)] for x in state.get_range()]
-  return GameState(updated, start_at)
-
-def plant_indexes(state):
-  return filter(lambda x: state.get(x) == 1, state.get_range())
+  active_pots = set()
+  for idx, char in enumerate(initial_state.strip()):
+    if char == '#':
+      active_pots.add(idx)
+  return active_pots
 
 def main():
   with open("../input.txt") as input:
-    initial_state = GameState(read_initial_state(input.readline()), 0)
+    state = GameState(read_initial_state(input.readline()))
     input.readline()
     rules = Rules(input.readlines())
 
-  state = initial_state
-  for iteration in range(0, 20):
-    state = update(state, rules)
+  for iteration in range(0, 100000):
+    state.update(rules)
 
-  result = sum(plant_indexes(state))
+  remaining = 50000000000 - 100000
+  result = sum(map(lambda x: x + remaining, state.active_pots))
+
+  # for iteration in range(0, 50000000000):
+  #   if iteration % 100000 == 0:
+  #     print("Processing iteration {}, count = {}".format(iteration, len(state.active_pots)))
+  #   state.update(rules)
 
   print("Result: {}".format(result))    
-
 
 if __name__ == "__main__":
   main()
